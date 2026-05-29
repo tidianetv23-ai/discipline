@@ -505,12 +505,13 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;displ
           <div class="gb-desc">Nourris ton âme avec les enseignements de l'Islam pour trouver paix, force et équilibre dans ta vie quotidienne.</div>
         </div>
 
-        <!-- AYAH -->
-        <div class="ayah-card main">
-          <div class="arabic">إِنَّ مَعَ الْعُسْرِ يُسْرًا</div>
-          <div class="ayah-ref">Sourate Al-Inshirah (94:6)</div>
-          <div class="ayah-trans">« En vérité, avec la difficulté vient la facilité. »</div>
-        </div>
+        <!-- AYAH DU JOUR -->
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--t3);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">📖 Verset du jour</div>
+        <div class="ayah-card main" id="dailyAyah"></div>
+
+        <!-- HADITH DU JOUR -->
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--t3);text-transform:uppercase;letter-spacing:2px;margin:14px 0 8px;">📜 Hadith du jour</div>
+        <div class="hadith-card" id="dailyHadith"></div>
 
         <!-- DHIKR COUNTER -->
         <div class="sec-hdr">
@@ -644,6 +645,85 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;displ
 </div>
 
 <script>
+// ── CONTENU ISLAMIQUE QUOTIDIEN ───────────────────────────
+const AYAT=[
+  {ar:'إِنَّ مَعَ الْعُسْرِ يُسْرًا',ref:'Sourate Al-Inshirah (94:6)',tr:'« En vérité, avec la difficulté vient la facilité. »'},
+  {ar:'وَمَن يَتَّقِ اللَّهَ يَجْعَل لَّهُ مَخْرَجًا',ref:'Sourate At-Talaq (65:2)',tr:'« Quiconque craint Allah, Il lui ménagera une issue. »'},
+  {ar:'فَاذْكُرُونِي أَذْكُرْكُمْ',ref:'Sourate Al-Baqarah (2:152)',tr:'« Souvenez-vous de Moi, Je Me souviendrai de vous. »'},
+  {ar:'وَبَشِّرِ الصَّابِرِينَ',ref:'Sourate Al-Baqarah (2:155)',tr:'« Et annonce la bonne nouvelle aux endurants. »'},
+  {ar:'إِنَّ اللَّهَ مَعَ الصَّابِرِينَ',ref:'Sourate Al-Baqarah (2:153)',tr:'« En vérité, Allah est avec les patients. »'},
+  {ar:'وَقُل رَّبِّ زِدْنِي عِلْمًا',ref:'Sourate Ta-Ha (20:114)',tr:'« Dis : Mon Seigneur, accroîs mes connaissances. »'},
+  {ar:'حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ',ref:'Sourate Al-Imran (3:173)',tr:'« Allah nous suffit, et quel excellent Protecteur ! »'},
+  {ar:'وَلَا تَيْأَسُوا مِن رَّوْحِ اللَّهِ',ref:'Sourate Yusuf (12:87)',tr:'« Et ne désespérez pas de la miséricorde d\'Allah. »'},
+  {ar:'إِنَّ اللَّهَ لَا يُغَيِّرُ مَا بِقَوْمٍ حَتَّىٰ يُغَيِّرُوا مَا بِأَنفُسِهِمْ',ref:'Sourate Ar-Ra\'d (13:11)',tr:'« Allah ne change pas l\'état d\'un peuple tant que les individus ne changent pas ce qui est en eux-mêmes. »'},
+  {ar:'وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ',ref:'Sourate Al-Baqarah (2:45)',tr:'« Cherchez de l\'aide dans la patience et la prière. »'},
+  {ar:'تَوَكَّلْ عَلَى اللَّهِ إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ',ref:'Sourate Al-Imran (3:159)',tr:'« Mets ta confiance en Allah. Allah aime ceux qui Lui font confiance. »'},
+  {ar:'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً',ref:'Sourate Al-Baqarah (2:201)',tr:'« Notre Seigneur ! Accorde-nous le bien ici-bas et le bien dans l\'au-delà. »'},
+  {ar:'وَهُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ',ref:'Sourate Al-Hadid (57:4)',tr:'« Il est avec vous où que vous soyez. »'},
+  {ar:'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ',ref:'Sourate Ar-Ra\'d (13:28)',tr:'« C\'est par l\'invocation d\'Allah que les cœurs se tranquillisent. »'},
+  {ar:'وَلَا تَهِنُوا وَلَا تَحْزَنُوا وَأَنتُمُ الْأَعْلَوْنَ',ref:'Sourate Al-Imran (3:139)',tr:'« Ne vous découragez pas et ne vous affligez pas, vous serez les plus élevés. »'},
+  {ar:'يُرِيدُ اللَّهُ بِكُمُ الْيُسْرَ وَلَا يُرِيدُ بِكُمُ الْعُسْرَ',ref:'Sourate Al-Baqarah (2:185)',tr:'« Allah veut pour vous la facilité, Il ne veut pas la difficulté pour vous. »'},
+  {ar:'وَاللَّهُ خَيْرُ الرَّازِقِينَ',ref:'Sourate Al-Jumu\'ah (62:11)',tr:'« Allah est le Meilleur des pourvoyeurs. »'},
+  {ar:'وَعَسَىٰ أَن تَكْرَهُوا شَيْئًا وَهُوَ خَيْرٌ لَّكُمْ',ref:'Sourate Al-Baqarah (2:216)',tr:'« Il se peut que vous ayez de l\'aversion pour une chose alors qu\'elle vous est bonne. »'},
+  {ar:'إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ',ref:'Sourate Al-Imran (3:159)',tr:'« Certes, Allah aime ceux qui s\'en remettent à Lui. »'},
+  {ar:'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',ref:'Sourate Al-Inshirah (94:5)',tr:'« Car avec la difficulté vient la facilité. »'},
+  {ar:'وَمَا تَوْفِيقِي إِلَّا بِاللَّهِ',ref:'Sourate Hud (11:88)',tr:'« Mon succès ne vient que d\'Allah. »'},
+  {ar:'ادْعُونِي أَسْتَجِبْ لَكُمْ',ref:'Sourate Ghafir (40:60)',tr:'« Invoquez-Moi, Je vous répondrai. »'},
+  {ar:'إِنَّ مَعَ الصَّبْرِ نَصْرًا',ref:'Sagesse prophétique',tr:'« Sache qu\'avec la patience vient la victoire. »'},
+  {ar:'وَاللَّهُ غَالِبٌ عَلَىٰ أَمْرِهِ',ref:'Sourate Yusuf (12:21)',tr:'« Allah est souverain dans Ses décisions. »'},
+  {ar:'قُلْ إِنَّ صَلَاتِي وَنُسُكِي وَمَحْيَايَ وَمَمَاتِي لِلَّهِ',ref:'Sourate Al-An\'am (6:162)',tr:'« Dis : Ma prière, mes actes, ma vie et ma mort appartiennent à Allah. »'},
+  {ar:'إِنَّ اللَّهَ لَطِيفٌ بِعِبَادِهِ',ref:'Sourate Ash-Shura (42:19)',tr:'« Allah est doux envers Ses serviteurs. »'},
+  {ar:'وَاللَّهُ يَعْلَمُ وَأَنتُمْ لَا تَعْلَمُونَ',ref:'Sourate Al-Baqarah (2:232)',tr:'« Allah sait et vous, vous ne savez pas. »'},
+  {ar:'وَاصْبِرْ وَمَا صَبْرُكَ إِلَّا بِاللَّهِ',ref:'Sourate An-Nahl (16:127)',tr:'« Sois patient — ta patience ne vient que d\'Allah. »'},
+  {ar:'رَبِّ اشْرَحْ لِي صَدْرِي',ref:'Sourate Ta-Ha (20:25)',tr:'« Mon Seigneur, ouvre ma poitrine (à Ta lumière). »'},
+  {ar:'وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ',ref:'Sourate At-Talaq (65:3)',tr:'« Quiconque place sa confiance en Allah, Il lui suffit. »'},
+];
+
+const HADITHS=[
+  {txt:'« Le croyant fort est meilleur et plus aimé d\'Allah que le croyant faible. Applique-toi à ce qui te profite, cherche l\'aide d\'Allah et ne te laisse pas aller à la faiblesse. »',ref:'Sahih Muslim'},
+  {txt:'« Les actions ne valent que par leurs intentions et chaque homme n\'obtient que ce qu\'il a eu l\'intention d\'acquérir. »',ref:'Sahih Al-Bukhari & Muslim'},
+  {txt:'« Prenez sur vous les actes que vous êtes capables d\'accomplir, car Allah ne se lasse pas tant que vous ne vous lassez pas. »',ref:'Sahih Al-Bukhari'},
+  {txt:'« La meilleure prière après la prière obligatoire est la prière de la nuit (Qiyam). »',ref:'Sahih Muslim'},
+  {txt:'« Un sourire adressé à ton frère est une aumône. »',ref:'At-Tirmidhi'},
+  {txt:'« Recherchez la science du berceau jusqu\'à la tombe. »',ref:'Hadith rapporté'},
+  {txt:'« Aucun de vous ne croit vraiment tant qu\'il n\'aime pas pour son frère ce qu\'il aime pour lui-même. »',ref:'Sahih Al-Bukhari & Muslim'},
+  {txt:'« Le meilleur d\'entre vous est celui qui apprend le Coran et l\'enseigne. »',ref:'Sahih Al-Bukhari'},
+  {txt:'« Deux paroles légères sur la langue, lourdes dans la balance, aimées du Tout Miséricordieux : Subhanallah wa bihamdihi, Subhanallah Al-Azim. »',ref:'Sahih Al-Bukhari'},
+  {txt:'« Commencez tout acte important par Bismillah. »',ref:'Sunan Ibn Majah'},
+  {txt:'« Le jeûne est un bouclier. »',ref:'Sahih Al-Bukhari'},
+  {txt:'« Facilite et ne complique pas, apaise et n\'effraie pas. »',ref:'Sahih Al-Bukhari'},
+  {txt:'« Nul d\'entre vous ne doit dormir la nuit sans avoir récité les trois Qul (Al-Ikhlas, Al-Falaq, An-Nas). »',ref:'Sunan Abu Dawud'},
+  {txt:'« La propreté fait partie de la foi. »',ref:'Sahih Muslim'},
+  {txt:'« Le plus aimé des actes auprès d\'Allah est celui qui est accompli de manière régulière même s\'il est peu important. »',ref:'Sahih Al-Bukhari'},
+  {txt:'« Celui qui suit un chemin pour chercher la science, Allah lui facilite un chemin vers le Paradis. »',ref:'Sahih Muslim'},
+  {txt:'« Il n\'est pas permis à un musulman de rester fâché contre son frère plus de trois jours. »',ref:'Sahih Al-Bukhari'},
+  {txt:'« Fais du bien même si c\'est peu, car même une petite chose peut être lourde dans la balance. »',ref:'Sahih Muslim'},
+  {txt:'« Manges ensemble, ne mangez pas séparément, car la bénédiction est dans le rassemblement. »',ref:'Sunan Ibn Majah'},
+  {txt:'« Quiconque croit en Allah et au Jour dernier, qu\'il parle bien ou qu\'il se taise. »',ref:'Sahih Al-Bukhari & Muslim'},
+  {txt:'« L\'Islam a été construit sur cinq piliers : la Shahada, la Salat, la Zakat, le jeûne du Ramadan et le Hajj. »',ref:'Sahih Al-Bukhari'},
+  {txt:'« Le Paradis est sous les pieds des mères. »',ref:'Sunan An-Nasa\'i'},
+  {txt:'« Traite les gens comme tu veux être traité. »',ref:'Hadith rapporté'},
+  {txt:'« Quand Allah aime un serviteur, Il lui envoie des épreuves. »',ref:'At-Tirmidhi'},
+  {txt:'« Rappelle-toi d\'Allah dans la prospérité, Il te rappellera dans l\'adversité. »',ref:'Musnad Ahmad'},
+  {txt:'« Que votre première parole du matin soit : Alhamdulillah. »',ref:'Hadith rapporté'},
+  {txt:'« Le temps est une épée : si tu ne le coupes pas, il te coupe. »',ref:'Sagesse islamique'},
+  {txt:'« Le dou\'a (invocation) est l\'essence de l\'adoration. »',ref:'At-Tirmidhi'},
+  {txt:'« Chaque maladie a un remède, et si le remède correspond à la maladie, elle guérit par la permission d\'Allah. »',ref:'Sahih Muslim'},
+  {txt:'« Parmi les meilleures actions : nourrir les autres et saluer ceux qu\'on connaît et ceux qu\'on ne connaît pas. »',ref:'Sahih Al-Bukhari'},
+];
+
+function getDailyItem(arr){
+  const start=new Date('2024-01-01');const now=new Date();
+  const days=Math.floor((now-start)/(1000*60*60*24));
+  return arr[days%arr.length];
+}
+function renderDailyIslam(){
+  const a=getDailyItem(AYAT);
+  document.getElementById('dailyAyah').innerHTML=`<div class="arabic">${a.ar}</div><div class="ayah-ref">${a.ref}</div><div class="ayah-trans">${a.tr}</div>`;
+  const h=getDailyItem(HADITHS);
+  document.getElementById('dailyHadith').innerHTML=`<div class="hadith-text">${h.txt}</div><div class="hadith-ref">— ${h.ref}</div>`;
+}
+
 // ── STORAGE ──────────────────────────────────────────────
 const ls={get:k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}};
 
@@ -673,7 +753,7 @@ function init(){
     sp.style.transition='opacity 0.5s';sp.style.opacity='0';
     setTimeout(()=>{sp.style.display='none';const app=document.getElementById('app');app.style.display='flex';},500);
   },1200);
-  checkNotif();updateHeader();renderQuote();renderTasks();updateScore();renderCal();renderDhikr();updateStreaks();
+  checkNotif();updateHeader();renderQuote();renderTasks();updateScore();renderCal();renderDhikr();renderDailyIslam();updateStreaks();
   setInterval(updateHeader,60000);
 }
 
