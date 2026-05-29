@@ -1,24 +1,14 @@
 {
-  "name": "DISCIPLINE",
-  "short_name": "DISCIPLINE",
+  "name": "BMK BOOST",
+  "short_name": "BMK BOOST",
   "description": "Tracker d'habitudes et planning journalier",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#080808",
+  "theme_color": "#080808",
   "orientation": "portrait",
   "icons": [
-    {
-      "src": "https://api.dicebear.com/7.x/shapes/svg?seed=discipline&size=192",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "https://api.dicebear.com/7.x/shapes/svg?seed=discipline&size=512",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+    { "src": "https://api.dicebear.com/7.x/shapes/svg?seed=bmkboost&size=192", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "https://api.dicebear.com/7.x/shapes/svg?seed=bmkboost&size=512", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
 }
