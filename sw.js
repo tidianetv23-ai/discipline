@@ -1,5 +1,4 @@
-// DISCIPLINE — Service Worker v1
-const CACHE = 'discipline-v1';
+const CACHE = 'bmkboost-v1';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {
@@ -30,13 +29,13 @@ self.addEventListener('notificationclick', e => {
 
 self.addEventListener('message', e => {
   if (e.data && e.data.type === 'SCHEDULE_NOTIF') {
-    const { title, body, delay } = e.data;
+    const { title, body, delay, tag } = e.data;
     setTimeout(() => {
       self.registration.showNotification(title, {
         body,
         icon: '/icon.png',
         vibrate: [200, 100, 200],
-        tag: 'discipline-reminder',
+        tag: tag || 'bmk-reminder',
         renotify: true,
         data: { url: '/' }
       });
